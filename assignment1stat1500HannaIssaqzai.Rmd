@@ -1,0 +1,512 @@
+---
+title: "Basic R Data Analysis"
+output:
+  html_document: default
+  pdf_document: default
+date: "2024-05-30"
+Name: Hanna Issaqzai 
+---
+Question 1. Function Creation and Vector Operations 
+1a) 
+```{r}
+## a) vector that contains sales figures for a week
+sales <- c(250, 310, 450, 500, 620, 715, 840)
+sales
+```
+1b) writing sales_summary function
+```{r}
+sales_summary <- function(sales){         #function uses sales vector as default 
+  tot <- sum(sales)       #caclulates sum of vector and assigns to variable
+  avg <- mean(sales)       #calculates mean of vector and assigns to variable
+  return(c("sum"= tot, "mean"= avg))     #returns both sum and mean variables with written labels
+}
+sales_summary(sales)
+```
+
+1c) writing adjust_sales function
+```{r}
+adjusted_sales <- function(sales,perc = 10){      
+  adj <- sales + ((perc/100)*sales)  
+  output <- c(sort(adj, decreasing = TRUE))   #sorts adj variable values in decreasing order
+  vector 
+  return(output)                   #outputs new vector
+}
+
+## testing adjust_sales function with 10% increase using the sales vector
+adjusted_sales(sales, 10)
+
+```
+1d)  
+```{r}
+## d) another test of adjust_sales function using random vector 
+other <- c(10, 6, 18, 59, 100, 16, 80, 13, 120, 200)
+adjusted_sales(other, 10)
+```
+1e) 
+```{r}
+## e) test of adjust_sales function using another percentage
+adjusted_sales(other, 15)
+```
+1f)
+```{r}
+adj <- sales + ((10/100)*sales)   #permanently creates adj vector to add to global environment  
+
+#creating dataframe with the original and new adj vector and day numbers for ggplot 
+forplot <- data.frame(Day = c(1,2,3,4,5,6,7),   
+                      Original = sales, Adjusted = adj)  
+
+library(ggplot2)
+
+ggplot(forplot, aes(x = Day)) +       #initializing input data to be used for ggplot graphs
+  geom_line(aes(y = Original, colour = "Original")) +    #geom_line specifically creates line graph
+  geom_line((aes(y = Adjusted, colour = "Adjusted"))) +    #two geom_line() used for each y 
+  labs(title = "Original and Adjusted Sales Figures for a Week", 
+       y = "Sales ($)", colour = "Type") +                  #labels for graph
+  theme(plot.title = element_text(hjust = 0.5))      #centers the plot title
+
+
+```
+
+
+
+Question 2. Dataframe operations and descriptive statistics
+a) creating students data frame
+```{r}
+students <- data.frame(
+  Name = c("Alice", "Bob", "Charlie", "David", "Eva"),
+  Age = c(23, 22, 24, 21, 23),
+  Score = c(85, 92, 78, 88, 90)
+  )
+students
+```
+2b)
+```{r}
+## adds new column called Passed to students dataframe 
+#outputs TRUE/FALSE to column (TRUE if >80, FAlSE if less than 80)  
+students$Passed <- ifelse(students$Score > 80,TRUE,FALSE)    
+students
+```
+2c)
+```{r}
+# calculates mean, median, SD while also creating new dataframe with Age/Score columns 
+stats <- data.frame(Age = c(mean(students$Age),median(students$Age),sd(students$Age)),
+                    Score = c(mean(students$Score),median(students$Score),sd(students$Score)))
+
+
+#adds mean/med/sd row names to the new dataframe in same order they were caclulated/added for clearer presentation
+rownames(stats) <- c("mean","median","SD")   
+stats
+```
+2d) student with highest score
+```{r}
+students[which(students$Score == max(students[,3])),]
+#max() finds highest value in 3rd (Score) column
+#which() outputs the row number with that max value 
+#students[] used to display the details from that row/columns
+```
+2e) filtering dataframe
+```{r}
+#outputs all columns but only rows in the passed column with TRUE value
+passed_students <- students[students$Passed == TRUE,]   
+passed_students
+
+```
+2f) creating bar chart with scores of students
+```{r}
+ggplot(data = students, aes(x = Name,y = Score, fill = Passed)) +
+         geom_col(width = 0.5) + scale_y_continuous(breaks = seq(0,100,20)) +        
+  labs(title = "Students Test Scores", fill = "Results") + scale_fill_hue(labels = c("Failed","Passed")) + theme(plot.title = element_text(hjust = 0.5))  
+
+#geom_col creates bar graph with heights that represent actual values
+#scale_y_continuous specifies the y axis scale to start 0 max 100 and going up by 20s
+#scale_fill_hue used to rename legend values from TRUE/FALSE to passed/failed for clarity
+#theme() used to center the title
+
+```
+2g) The average age of the students were 22.6 and the median was 23 years, and the low SD (1.14) shows there is not much variation in the ages from the mean. The score of the students was 86.6 and the standard deviation (SD) was 5.45, which is quite large indicating that there is a high variance in the test scores. The median score, 88, is slightly higher than the mean but the difference is quite small so it is unlikely to be negatively skewed. A histogram would present the data better for statistical interpretation, but the bar chart summarizes the data and shows the student with the highest score was Bob and the only student who failed was Charlie. 
+
+
+3. Advanced Data Manipulation and Visualization
+a) creating employees dataframe
+```{r}
+employees <- data.frame(
+  Department = c("Sales", "HR", "IT", "Finance", "Marketing"),
+  Name = c("John", "Jane", "Doe", "Smith", "Emily"),
+  EmployeeID = c(101, 102, 103, 104, 105), 
+  Salary = c(60000, 65000, 70000, 72000, 68000),
+  Experience = c(3, 7, 5, 10, 4)
+  )
+employees
+```
+3b) writing department_summary function
+```{r}
+meansal <- sapply(employees[,4], mean)     #caclulates and saves mean salary to variable
+medsal <- sapply(employees[,4], median)   #calculates and saves median salary to variable
+
+department_summary <- function(dep,avg,meds){
+  summarydf <- data.frame(Department = dep, MeanSalary = avg, MedianSalary = meds)
+  return(summarydf)
+}
+
+# more of a general function that can be applied to any dataframe, where department column (dep), mean salary (avg), and median salary (meds) have to be specified in the input
+
+department_summary(employees$Department,meansal,medsal)  #input with mean/median vectors created earlier
+
+
+# or this function which is specific to department_summary dataset, and directly calculates mean/median 
+# department_summary <- function(){
+#   summarydf <- data.frame(Department = employees$Department,MeanSalary = sapply(employees[,4], mean), MedianSalary = sapply(employees[,4], median))
+#   return(summarydf)
+# }
+# 
+# department_summary() 
+```
+3c) writing top_earner function 
+```{r}
+
+top_earner <- function(){
+  print("Highest Salary in Each Department",quote = FALSE)
+  for (i in employees[,1]){          #goes through every row of department column 
+    sm <- which(employees[,1] == i)     #finds row number of the particular department (i)
+    high <- max(employees[sm,4])   #uses that row number to find max salary in the 4th (salary) column
+    print(paste("Department:",employees[sm,1],",","Name:", 
+                employees[sm,2],",","Salary:",high,",", "Experience:",employees[sm,5]),quote = FALSE)   
+  }
+  
+}
+
+#function then prints the max salary and other columns/rows with labels for details of the employee
+#quotes are removed with quote = FALSE for better presentation
+
+top_earner()
+
+
+```
+3d) adding new column to dataframe
+```{r}
+employees$AdjustedSalary <- (employees$Salary + (((employees$Experience*2)/100)*employees$Salary))
+employees
+
+#(employees$Experience*2)/100 calculates the percentage for every year 
+#and then *employees$Salary calculates that percentage of salary, which is then 
+#added to + employees$Salary and assigned to new column
+
+```
+3e) filtering dataframe 
+```{r}
+high_earners <- employees[employees$AdjustedSalary > 70000,] 
+#shows rows with adjusted salary values above 70000, and all columns
+high_earners
+
+```
+
+3f) boxplot
+```{r}
+## creating a long format dataframe with three columns and 
+#salary and adjusted salary values in same column for use in ggplot to make a clustered box plot 
+
+longformat <- reshape2::melt(employees, id.vars = "Department", 
+                                 measure.vars = c("Salary", "AdjustedSalary"),
+                                 variable.name = "SalaryType", 
+                                 value.name = "Amount")
+
+ggplot(longformat, aes(x = Department, y = Amount, fill = SalaryType)) +
+  geom_boxplot() +            #used to make boxplot
+  labs(title = "Original vs Adjusted Salaries Across Departments",
+       x = "Department",
+       y = "Salary ($)",
+       fill = "Salary Type") + theme(plot.title = element_text(hjust = 0.5))
+
+
+
+```
+3g) The department with the highest original salary was finance, with an average of 72000 dollars and the department with the lowest salary was sales, with an average of 60000 dollars. Considering the boxplot, the department that shows the highest increase with the adjusted salary is finance, showing that this is the department that has employees with the most years of experience. The department with the lowest increase in adjusted salary is sales, showing this is the department with employees with the least years of experience. This could mean that the low salary in this department can be attributed to less experience employees, with the high salary seen in finance may be due to having more experienced employees. The employee with the highest salary in the finance department is Smith who has 10 years of experience and makes 72000, but the employee with the lowest salary in sales is Johhn who has 3 years of experience and makes 60000. 
+
+
+4. Exploring Dataframes with Multiple Operations
+a)  creating products dataframe
+```{r}
+products <- data.frame(
+  ProductID = c(201, 202, 203, 204, 205),
+  ProductName = c("Laptop", "Smartphone", "Tablet", "Headphones", "Smartwatch"),
+  Category = c("Electronics", "Electronics", "Electronics", "Accessories", "Electronics"),
+  Price = c(1200, 800, 600, 200, 350),
+  QuantitySold = c(150, 200, 300, 400, 250)
+)
+
+products
+
+```
+4b) writing calculate_revenue function
+```{r}
+#this function is specific to the products dataset, not a general function
+#function directly calculates revenue and adds it to a new column 
+calculate_revenue <- function(){
+  products$Revenue <- products$Price*products$QuantitySold    
+  return(products)
+}
+
+calculate_revenue()
+
+
+```
+4c) identifying highest revenue products
+```{r}
+#permanently adds new column Revenue to dataframe so it can be filtered 
+products$Revenue <- (Revenue = products$Price*products$QuantitySold)  
+
+#outputs all columns with rows that have the max salary in the revnue (6) column
+products[Revenue == max(products[,6]),]
+
+```
+4d) grouping by catgeory and calculating total revenue
+```{r}
+library(dplyr)
+
+category_revenue <- function(){
+  new <- data.frame(products %>% group_by(Category) %>%     
+                      summarise(TotalRevenue = sum(Revenue)))
+  return(new)
+}
+
+# the %>% pipes the products dataframe into group_by() function which groups products by 
+#category, which is then piped into the summarise() function which creates new dataframe with 
+#a row for each category and new column (TotalRevenue) which has the sum() of the Revenue assigned to it
+
+category_revenue()
+
+
+```
+4e) bar chart of total revenue
+```{r}
+library(ggplot2)
+ggplot(products, aes(x = ProductName, y = Revenue, fill = Category)) + 
+  geom_col() + labs(title = "Total Revenue for Each Product", x = "Product") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+ 
+f) creating scatterplot
+```{r}
+ggplot(products, aes(x = Price, y = QuantitySold, color = Category)) +
+  geom_point(size = 2) +       #sets size of each data point
+  geom_smooth(method = "lm", se = FALSE, linewidth = 0.75 , colour = 'black') +  
+  labs(title = "Scatter Plot of Price vs Quantity Sold", y = "Quantity Sold") + 
+  theme(plot.title = element_text(hjust = 0.5))
+
+#geom_smooth to add a black linear model/trend line, and no confidence interval (se = false)
+```
+g) The products with the highest revenue are laptops and tablets, both bringing in 180000 in revenue. Headphones have the lowest revenue bringing in only 80000. Overall, the products in the electronics category have the highest revenue with an average of 607500 but the accessories category has the lowest revenue with 80000. Yet considering there is only one product in the accessories category and several products in the electronics category meaningful interpretations can be biased. Albeit, the scatterplot shows an overall negative relationship between price of the product and the quantity sold. So, as price increases the number of products sold decreases. This indicates that high prices can be a limiting factor in the number of products sold. Although, this relationship is mostly with data/products from the electronics category. The only product in the accessories department has the lowest price and the highest quantity sold. Perhaps, the reason the accessories category shows the lowest revenue could be from the lack of sample size. And the relationship between price and quantity sold may be different in the accessories category.         
+
+
+
+5. Debugging Subsetting and Indexing Issues
+a) high_scorers_ages <- students[students$Score > 80][, "Age"]
+print(high_scorers_ages)
+- this code is missing a comma after the students$Score > 80 in the square brackets which is needed to indicate the columns that should be selected from
+
+```{r}
+## loading dataset to run the corrected code 
+students <- data.frame(
+Name = c("Alice", "Bob", "Charlie", "David", "Eva"),
+Age = c(23, 22, 24, 21, 23),
+Score = c(85, 92, 78, 88, 90)
+)
+
+## this is the corrected code with the comma after 80
+high_scorers_ages <- students[students$Score > 80,][, "Age"]
+print(high_scorers_ages)
+
+```
+
+b) salary <- employee_list["Salaries"]
+print(salary)
+- there is no such thing as "Salaries" in the list, so it is extracting nothing which is why you get a NULL. Instead, it is written as "Salary" in the list so when extracting, you have to spell it that way in the square brackets
+```{r}
+employee_list <- list(
+Name = "John",
+Age = 30,
+Department = "HR",
+Salary = 50000
+)
+
+## corrected code
+salary <- employee_list["Salary"]
+print(salary)
+```
+
+c) value <- sales_data[3, 3, 0]
+- firstly, there are 3 matrices (1-3) but this has 0 selected, which doesn't exist so you'll get 0 and also it has the
+the third row in the third column selected, but we want the second row in the second column of the first matrix. So it has to be [2,2,1]
+```{r}
+sales_data <- array(1:27, dim = c(3, 3, 3))
+
+## corrected code
+
+value <- sales_data[2, 2, 1]
+print(value)
+```
+
+d) expensive_products <- products[products$Price >= "500", ]
+- logical operators must be on numerical values, but this code has 500 written in quotations so it's listed as a string instead of an actual number. So it should just be 500 instead of "500"
+
+```{r}
+products <- data.frame(
+ProductID = c(201, 202, 203, 204, 205),
+ProductName = c("Laptop", "Smartphone", "Tablet", "Headphones", "Smartwatch"),
+Category = c("Electronics", "Electronics", "Electronics", "Accessories", "Electronics"),
+Price = c(1200, 800, 600, 200, 350),
+QuantitySold = c(150, 200, 300, 400, 250)
+)
+
+## corrected code
+expensive_products <- products[products$Price >= 500, ]
+print(expensive_products)
+```
+
+
+6. Analysis of the "trees" Dataset 
+a) part 1: loading trees dataset and checking structure
+```{r}
+trees
+str(trees) 
+```
+a) part 2: using apply() function
+```{r}
+apply(trees,2,mean) #calculates mean of all three columns (girth, height, volume)
+```
+a) part 3: num of trees volume greater than mean volume 
+```{r}
+count <- 0   # setting this variable so it can add up the outputs from the loop
+for (i in trees[,3]) {      # will check every row in the volume column 
+  if (i > 30.17097){
+    count <- count + 1     #+1 will be added to count if value is greater than mean
+  }
+} 
+print(count)
+
+```
+
+
+
+b) part1: girth/diameter to radius
+```{r}
+rad = c()  # empty vector to add the converted values to
+for (i in trees[,1]) {   #checks for every row (i) in the 1st (girth) column 
+  rad <- append(rad,i/2) # i (girth value) divided by 2 = radius which is then appended to rad vector
+}
+rad 
+
+```
+b) part2: cross-sectional area of each tree
+```{r}
+Area = c()   #empty vector to add the calculated values to
+for (j in rad) {        #checks for every value in rad vector made earlier 
+  Area <- append(Area,(pi*(j^2)))  #using formula pi*r^2 to calculate area and add to vector
+}
+Area
+```
+b) part3: interquartile range of area
+```{r}
+IQR(Area)
+```
+
+
+c) histogram of areas
+```{r}
+hist(Area, main = "Histogram", 
+     ylab = "Frequency", xlab = "Cross-Sectional Area of Each Tree")
+
+```
+
+
+d) part1: identifying tree with largest area
+```{r}
+trees <- cbind(trees, Area)  #adding Area vector to dataset to work with that instead
+
+which.max(trees$Area)  #finds the row number of the row with the maximum area 
+
+```
+
+d) part2: output of entire row
+```{r}
+trees[31,] #outputs all the columns for the 31st row which was found to have the max area
+
+```
+
+```
+```
+
+7. Comprehensive Data Analysis and Function Creation
+a) loading mt cars dataset
+```{r}
+mtcars
+```
+
+7a) part2: filtering dataset
+```{r}
+filtered_cars <- filter(mtcars, hp > 150 & cyl >= 6)
+filtered_cars
+ #filter() shows only rows that match both (&) conditions
+```
+7b)
+```{r}
+# general function that requires mpg, hp, and wt to be specified
+efficiency_score <- function(mpg = filtered_cars[,1], hp = filtered_cars[,4], 
+                             wt = filtered_cars[,6]){
+  score <- mpg/(hp * wt)
+  return(score)
+}
+
+# vector output of this function is added to new variable 
+Efficiency <- efficiency_score()
+
+filtered_cars <- cbind(filtered_cars, Efficiency) #variable/vector added as a new column to dataset
+filtered_cars
+
+
+```
+7c)part1: identifying outlier rows
+```{r}
+first <- quantile(filtered_cars$Efficiency, probs = 0.01)    #calculates 1st percentile 
+ninety <- quantile(filtered_cars$Efficiency, probs = 0.99)   #calculates  99th percentile 
+
+for (i in filtered_cars$Efficiency){       #checks every row (i) of efficiency column
+  if (i < first || i > ninety) {    #where value is less than 1st percentile. OR (||) greater than 99th percentile
+    pt <- which(filtered_cars$Efficiency == i)     #finds which rows those values are located in        
+    print(paste(pt,i), quote = FALSE)     ## prints both the row number and the value at that row
+  }
+}
+
+
+```
+
+7c)part2: replacing outliers with mean
+```{r}
+filtered_cars$Efficiency[c(7,12)] <- mean(filtered_cars[-c(7,12),12])   
+filtered_cars
+
+#calculates mean without row 7 and 12 of the efficiency (12) column, 
+#which were the rows found earlier to contain the outlier efficiencies
+#then adds that mean to row 7/12 of efficiency column
+
+```
+7d)
+```{r}
+ggplot(filtered_cars, aes(x = hp, y = Efficiency, colour = cyl)) +
+  geom_point() + geom_smooth(method = "lm", se = FALSE, linewidth = 0.75,       
+                             colour = 'black') + 
+  labs(title = "Scatterplot", x = "Horsepower (hp)", colour = "Cylinders")
+                                                      
+#geom_point makes scatterplot, and geom_smooth used to add linear model trend line, 
+#without confidence interval (se = FALSE)
+```
+The graph shows that as horsepower increases, the efficiency of a car decreases. In other words, there is a negative correlation. The fit of the linear model may indicate a weak relationship between the two variables due to how dispersed the points are. Considering the number of cylinders, the filtered data set has only one car with 6 cylinders while the rest all have 8 cylinders. So, any meaningful interpretations are very limited. That being said, the scatterplot shows the car with 6 cylinders has a low horsepower and about average efficiency. This was the car with an efficiency score that was an outlier (less than the 1st percentile) and so had to be replaced with the average efficiency without the outliers. 
+```
+```
+
+
+
+
+```
+
